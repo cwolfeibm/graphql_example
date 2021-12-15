@@ -4,7 +4,8 @@ const express = require('express');
 const expressJwt = require('express-jwt');
 const jwt = require('jsonwebtoken');
 const db = require('./db');
-
+const fs = require('fs')
+const { ApolloServer, gql } = require('apollo-server-express')
 const port = 9000;
 const jwtSecret = Buffer.from('Zn8Q5tyZ/G1MHltc4F/gTkVJMlrbKiZt', 'base64');
 
@@ -13,6 +14,20 @@ app.use(cors(), bodyParser.json(), expressJwt({
   secret: jwtSecret,
   credentialsRequired: false
 }));
+
+
+async function startServer() {
+  typeDefs = gql(fs.readFileSync('./schema.graphql', {encoding: 'utf8'}));
+  resolvers = require('./resolvers')
+  apolloServer = new ApolloServer({
+      typeDefs,
+      resolvers,
+  });
+  await apolloServer.start();
+  apolloServer.applyMiddleware({app, path: '/graphql'});
+}
+
+startServer()
 
 app.post('/login', (req, res) => {
   const {email, password} = req.body;
