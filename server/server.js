@@ -17,11 +17,13 @@ app.use(cors(), bodyParser.json(), expressJwt({
 
 
 async function startServer() {
-  typeDefs = gql(fs.readFileSync('./schema.graphql', {encoding: 'utf8'}));
-  resolvers = require('./resolvers')
+  const typeDefs = gql(fs.readFileSync('./schema.graphql', {encoding: 'utf8'}));
+  const resolvers = require('./resolvers')
+  const context = ({req}) => ({user: req.user && db.users.get(req.user.sub)})
   apolloServer = new ApolloServer({
       typeDefs,
       resolvers,
+      context
   });
   await apolloServer.start();
   apolloServer.applyMiddleware({app, path: '/graphql'});
